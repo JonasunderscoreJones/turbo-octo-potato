@@ -1,5 +1,5 @@
 # turbo-octo-potato
-random python scripts (the repo name was recommended by github)
+random scripts (the repo name was recommended by github)
 
 *These scripts where once used to automate silly tasks*
 
