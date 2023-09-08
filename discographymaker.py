@@ -91,7 +91,7 @@ def insertion_sort(data_list):
 def createPlaylist(sp: spotipy.Spotify, songs: list[(str, str, str, str)], artist: str = None):
     if artist == None:
         artist = input("Primary Artist: ")
-    playlist = sp.user_playlist_create(SPOTIFY_USER_ID, artist + " Chronological Discography", description="Full Discography of " + artist + "and Solo Releases - no inst., no OSTs")
+    playlist = sp.user_playlist_create(SPOTIFY_USER_ID, artist + " Chronological Discography", description="Full Discography of " + artist + " and Solo Releases - no inst., no OSTs")
     print('New Playlist created')
     print("Name: " + playlist['name'])
     print("ID: " + playlist['id'])
