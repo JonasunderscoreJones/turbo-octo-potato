@@ -151,5 +151,5 @@ if __name__ == "__main__":
             add_track_to_playlist(LIKEDSONGPLAYLIST_ID, track_uri)
             if VERBOSE_LOGGING:
                 verboseprint("%-10s %15s" % (f"ETA:{round((((int(len(liked_songs))-tracknr)*0.75)/60))}min", f"[{tracknr}/{int(len(liked_songs))}|+]") + "%30.32s %s" % (track['artists'][0]['name'], track['name']))
-        else:
+        elif VERBOSE_LOGGING:
             verboseprint("%-10s %13s" % (f"ETA:{round((((int(len(liked_songs))-tracknr)*0.`75)/60))}min", f"[{tracknr}/{int(len(liked_songs))}]") + "%32.32s %s" % (track['artists'][0]['name'], track['name']))
