@@ -142,14 +142,24 @@ if __name__ == "__main__":
     for track_uri, track_name, artist_name in liked_songs:
         tracknr += 1
         # Love the track on Last.fm
-        track = sp.track(track_uri)
-        fm_track = network.get_track(artist_name, track_name)
-        fm_track.love()
-        fm_track.add_tags(("awesome", "favorite"))
-        
-        if not is_track_in_playlist(liked_songs_playlist_songs, track_uri):
-            add_track_to_playlist(LIKEDSONGPLAYLIST_ID, track_uri)
-            if VERBOSE_LOGGING:
-                verboseprint("%-10s %15s" % (f"ETA:{round((((int(len(liked_songs))-tracknr)*0.75)/60))}min", f"[{tracknr}/{int(len(liked_songs))}|+]") + "%30.32s %s" % (track['artists'][0]['name'], track['name']))
-        elif VERBOSE_LOGGING:
-            verboseprint("%-10s %13s" % (f"ETA:{round((((int(len(liked_songs))-tracknr)*0.`75)/60))}min", f"[{tracknr}/{int(len(liked_songs))}]") + "%32.32s %s" % (track['artists'][0]['name'], track['name']))
+        def loop_do():
+            track = sp.track(track_uri)
+            fm_track = network.get_track(artist_name, track_name)
+            fm_track.love()
+            fm_track.add_tags(("awesome", "favorite"))
+            
+            if not is_track_in_playlist(liked_songs_playlist_songs, track_uri):
+                add_track_to_playlist(LIKEDSONGPLAYLIST_ID, track_uri)
+                if VERBOSE_LOGGING:
+                    verboseprint("%-10s %15s" % (f"ETA:{round((((int(len(liked_songs))-tracknr)*0.75)/60))}min", f"[{tracknr}/{int(len(liked_songs))}|+]") + "%30.32s %s" % (track['artists'][0]['name'], track['name']))
+            elif VERBOSE_LOGGING:
+                verboseprint("%-10s %13s" % (f"ETA:{round((((int(len(liked_songs))-tracknr)*0.75)/60))}min", f"[{tracknr}/{int(len(liked_songs))}]") + "%32.32s %s" % (track['artists'][0]['name'], track['name']))
+        # Loop until the API call succeeds
+        while True:
+            try:
+                loop_do()
+                break
+            except KeyboardInterrupt: # Allow the user to interrupt the script
+                exit()
+            except:
+                continue
