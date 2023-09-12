@@ -117,6 +117,13 @@ if __name__ == "__main__":
 
     # Parse command-line arguments
     VERBOSE_LOGGING = "-v" in sys.argv or "--verbose" in sys.argv
+    try:
+        SKIPSONGS = int(sys.argv[sys.argv.index("--skip") + 1]) if "--skip" in sys.argv else int(sys.argv[sys.argv.index("-s") + 1]) if "-s" in sys.argv else 0
+    except:
+        print("[--skip/-s] Require a number to be set.")
+        print("E.g.: --skip 88")
+        exit()
+
 
     verboseprint("Authenticating Spotify...")
 
@@ -137,7 +144,7 @@ if __name__ == "__main__":
 
     print(f"Number of liked tracks: {len(liked_songs)}")
     print(f"Number of playlist songs: {len(liked_songs_playlist_songs)}")
-
+    print(f"Skipping the first {SKIPSONGS} songs...")
     tracknr = 0
     for track_uri, track_name, artist_name in liked_songs:
         tracknr += 1
@@ -155,7 +162,7 @@ if __name__ == "__main__":
             elif VERBOSE_LOGGING:
                 verboseprint("%-10s %13s" % (f"ETA:{round((((int(len(liked_songs))-tracknr)*0.75)/60))}min", f"[{tracknr}/{int(len(liked_songs))}]") + "%32.32s %s" % (track['artists'][0]['name'], track['name']))
         # Loop until the API call succeeds
-        while True:
+        while tracknr > SKIPSONGS:
             try:
                 loop_do()
                 break
