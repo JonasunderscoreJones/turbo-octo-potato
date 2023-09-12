@@ -16,6 +16,7 @@ SPOTIPY_REDIRECT_URI = ""
 LIKEDSONGPLAYLIST_ID = ""
 
 def progress_bar(current, total, last_time_stamp=time.time()):
+    current = total if current > total else current
     this_timestamp = time.time()
     width = os.get_terminal_size().columns
     progress = round((current/total)*width)
