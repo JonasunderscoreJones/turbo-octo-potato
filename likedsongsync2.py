@@ -118,13 +118,14 @@ if __name__ == "__main__":
 
     # Parse command-line arguments
     VERBOSE_LOGGING = "-v" in sys.argv or "--verbose" in sys.argv
+    FORCE_RESYNC_ALL = "-f" in sys.argv or "--force-all" in sys.argv
+
     try:
         SKIPSONGS = int(sys.argv[sys.argv.index("--skip") + 1]) if "--skip" in sys.argv else int(sys.argv[sys.argv.index("-s") + 1]) if "-s" in sys.argv else 0
     except:
         print("[--skip/-s] Require a number to be set.")
         print("E.g.: --skip 88")
         exit()
-
 
     verboseprint("Authenticating Spotify...")
 
@@ -142,6 +143,14 @@ if __name__ == "__main__":
     #remove_unliked_tracks(LIKEDSONGPLAYLIST_ID, liked_songs)
 
     liked_songs_playlist_songs = get_all_songs_from_playlist(LIKEDSONGPLAYLIST_ID)
+
+    if not FORCE_RESYNC_ALL:
+        verboseprint("Syncing only new songs...")
+        liked_songs = [x for x in liked_songs if x not in liked_songs_playlist_songs]
+        print(liked_songs)
+        if len(liked_songs) == 0:
+            print("Nothing to do.")
+            exit()
 
     print(f"Number of liked tracks: {len(liked_songs)}")
     print(f"Number of playlist songs: {len(liked_songs_playlist_songs)}")
@@ -169,5 +178,12 @@ if __name__ == "__main__":
                 break
             except KeyboardInterrupt: # Allow the user to interrupt the script
                 exit()
+            except spotipy.SpotifyException as e:
+                if e.http_status == 429:
+                    time.sleep(30)
+                    verboseprint("                       ]")
+                    verboseprint("WARN:RATELIMIT EXCEEDED] Waiting 30 seconds to proceed...")
+                else:
+                    print(e.http_status)
             except:
                 continue
