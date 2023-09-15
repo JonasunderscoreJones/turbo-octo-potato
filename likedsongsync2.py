@@ -15,7 +15,7 @@ SPOTIPY_REDIRECT_URI = ""
 # Define your playlist IDs
 LIKEDSONGPLAYLIST_ID = ""
 
-def progress_bar(current, total, last_time_stamp=time.time()):
+def progress_bar(current, total, last_time_stamp=time.time(), etastr=None):
     current = total if current > total else current
     this_timestamp = time.time()
     width = os.get_terminal_size().columns
@@ -25,13 +25,16 @@ def progress_bar(current, total, last_time_stamp=time.time()):
         return f"{current}/{total}", this_timestamp
     else:
         current_spacer = " "*(total_num_len-len(str(current)))
-        eta = round((total - current)* (this_timestamp - last_time_stamp)/60)
+        if etastr:
+            eta = etastr
+        else:
+            eta = str(round((total - current)* (this_timestamp - last_time_stamp)/60)) + "s"
         percent = str(round(current/total*100))
         percent = " "*(3-len(percent)) + percent
-        progress_bar_length = width - 2*total_num_len - 14 - len(str(eta)) - len(percent)
+        progress_bar_length = width - 2*total_num_len - 13 - len(str(eta)) - len(percent)
         progress_bar_progress = round((current/total)*progress_bar_length)
         progress_bar_spacer = " "*(progress_bar_length-progress_bar_progress)
-        return f"[{current_spacer}{current}/{total}|{percent}%|ETA: {eta}s|{'='*progress_bar_progress}>{progress_bar_spacer}]", this_timestamp
+        return f"[{current_spacer}{current}/{total}|{percent}%|ETA: {eta}|{'='*progress_bar_progress}>{progress_bar_spacer}]", this_timestamp
 
 def verboseprint(message, end="\n"):
     if VERBOSE_LOGGING:
@@ -151,15 +154,15 @@ if __name__ == "__main__":
         if len(liked_songs) == 0:
             print("Nothing to do.")
             exit()
-
     print(f"Number of liked tracks: {len(liked_songs)}")
     print(f"Number of playlist songs: {len(liked_songs_playlist_songs)}")
     print(f"Skipping the first {SKIPSONGS} songs...")
     tracknr = 0
+    last_time_stamp = time.time()
     for track_uri, track_name, artist_name in liked_songs:
         tracknr += 1
-        # Love the track on Last.fm
-        def loop_do():
+
+        def loop_do(last_time_stamp):
             track = sp.track(track_uri)
             fm_track = network.get_track(artist_name, track_name)
             fm_track.love()
@@ -168,13 +171,20 @@ if __name__ == "__main__":
             if not is_track_in_playlist(liked_songs_playlist_songs, track_uri):
                 add_track_to_playlist(LIKEDSONGPLAYLIST_ID, track_uri)
                 if VERBOSE_LOGGING:
-                    verboseprint("%-10s %15s" % (f"ETA:{round((((int(len(liked_songs))-tracknr)*0.75)/60))}min", f"[{tracknr}/{int(len(liked_songs))}|+]") + "%30.32s %s" % (track['artists'][0]['name'], track['name']))
+                    verboseprint("[" + f"%{4 + len(str(len(liked_songs)))*2}s" % (f"{tracknr}/{len(liked_songs)}|+]") + "%30.32s %s" % (track['artists'][0]['name'], track['name']))
+                    #verboseprint("%-10s %15s" % (f"ETA:{round((((int(len(liked_songs))-tracknr)*0.75)/60))}min", f"[{tracknr}/{int(len(liked_songs))}|+]") + "%30.32s %s" % (track['artists'][0]['name'], track['name']))
             elif VERBOSE_LOGGING:
-                verboseprint("%-10s %13s" % (f"ETA:{round((((int(len(liked_songs))-tracknr)*0.75)/60))}min", f"[{tracknr}/{int(len(liked_songs))}]") + "%32.32s %s" % (track['artists'][0]['name'], track['name']))
+                verboseprint("[" + f"%{2 + len(str(len(liked_songs)))*2}s" % (f"{tracknr}/{len(liked_songs)}]") + "%32.32s %s" % (track['artists'][0]['name'], track['name']))
+                #verboseprint("%-10s %13s" % (f"ETA:{round((((int(len(liked_songs))-tracknr)*0.75)/60))}min", f"[{tracknr}/{int(len(liked_songs))}]") + "%32.32s %s" % (track['artists'][0]['name'], track['name']))
+            verboseprint('#'* os.get_terminal_size().columns, end="\r")
+
+            progress_print, last_time_stamp = progress_bar(tracknr, len(liked_songs), etastr=str(round((((int(len(liked_songs))-tracknr)*0.75)/60)))+"min")
+            verboseprint(progress_print, end="\r")
+            return last_time_stamp
         # Loop until the API call succeeds
         while tracknr > SKIPSONGS:
             try:
-                loop_do()
+                last_time_stamp =  loop_do(last_time_stamp)
                 break
             except KeyboardInterrupt: # Allow the user to interrupt the script
                 exit()
@@ -185,5 +195,5 @@ if __name__ == "__main__":
                     verboseprint("WARN:RATELIMIT EXCEEDED] Waiting 30 seconds to proceed...")
                 else:
                     print(e.http_status)
-            except:
+            except e:
                 continue
