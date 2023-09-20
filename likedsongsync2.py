@@ -150,7 +150,6 @@ if __name__ == "__main__":
     if not FORCE_RESYNC_ALL:
         verboseprint("Syncing only new songs...")
         liked_songs = [x for x in liked_songs if x not in liked_songs_playlist_songs]
-        print(liked_songs)
         if len(liked_songs) == 0:
             print("Nothing to do.")
             exit()
@@ -167,19 +166,17 @@ if __name__ == "__main__":
             fm_track = network.get_track(artist_name, track_name)
             fm_track.love()
             fm_track.add_tags(("awesome", "favorite"))
-            
+            verboseprint(' '* os.get_terminal_size().columns, end="\r")
             if not is_track_in_playlist(liked_songs_playlist_songs, track_uri):
+                verboseprint("[" + f"%{4 + len(str(len(liked_songs)))*2}s" % (f"{tracknr}/{len(liked_songs)}|+]") + "%30.32s %s" % (track['artists'][0]['name'], track['name']))
+                progress_print, last_time_stamp = progress_bar(tracknr, len(liked_songs), etastr=str(round((((int(len(liked_songs))-tracknr)*0.75)/60)))+"min")
+                verboseprint(progress_print, end="\r")
                 add_track_to_playlist(LIKEDSONGPLAYLIST_ID, track_uri)
-                if VERBOSE_LOGGING:
-                    verboseprint("[" + f"%{4 + len(str(len(liked_songs)))*2}s" % (f"{tracknr}/{len(liked_songs)}|+]") + "%30.32s %s" % (track['artists'][0]['name'], track['name']))
-                    #verboseprint("%-10s %15s" % (f"ETA:{round((((int(len(liked_songs))-tracknr)*0.75)/60))}min", f"[{tracknr}/{int(len(liked_songs))}|+]") + "%30.32s %s" % (track['artists'][0]['name'], track['name']))
-            elif VERBOSE_LOGGING:
+            else:
                 verboseprint("[" + f"%{2 + len(str(len(liked_songs)))*2}s" % (f"{tracknr}/{len(liked_songs)}]") + "%32.32s %s" % (track['artists'][0]['name'], track['name']))
-                #verboseprint("%-10s %13s" % (f"ETA:{round((((int(len(liked_songs))-tracknr)*0.75)/60))}min", f"[{tracknr}/{int(len(liked_songs))}]") + "%32.32s %s" % (track['artists'][0]['name'], track['name']))
-            verboseprint('#'* os.get_terminal_size().columns, end="\r")
+                progress_print, last_time_stamp = progress_bar(tracknr, len(liked_songs), etastr=str(round((((int(len(liked_songs))-tracknr)*0.75)/60)))+"min")
+                verboseprint(progress_print, end="\r")
 
-            progress_print, last_time_stamp = progress_bar(tracknr, len(liked_songs), etastr=str(round((((int(len(liked_songs))-tracknr)*0.75)/60)))+"min")
-            verboseprint(progress_print, end="\r")
             return last_time_stamp
         # Loop until the API call succeeds
         while tracknr > SKIPSONGS:
@@ -195,5 +192,6 @@ if __name__ == "__main__":
                     verboseprint("WARN:RATELIMIT EXCEEDED] Waiting 30 seconds to proceed...")
                 else:
                     print(e.http_status)
-            except e:
+            except:
+            # except e:
                 continue
