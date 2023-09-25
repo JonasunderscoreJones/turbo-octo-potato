@@ -153,7 +153,6 @@ if __name__ == "__main__":
         if len(liked_songs) == 0:
             print("Nothing to do.")
             exit()
-    print(f"Number of liked tracks: {len(liked_songs)}")
     print(f"Number of playlist songs: {len(liked_songs_playlist_songs)}")
     print(f"Skipping the first {SKIPSONGS} songs...")
     tracknr = 0
