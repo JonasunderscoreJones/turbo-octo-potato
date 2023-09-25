@@ -1,19 +1,23 @@
 import pylast, spotipy, sys, os, time
 from spotipy.oauth2 import SpotifyOAuth
+from dotenv import load_dotenv
+
+# load .env file
+load_dotenv()
 
 # Define your Last.fm API credentials
-LASTFM_API_KEY = ""
-LASTFM_API_SECRET = ""
-LASTFM_USERNAME = "Jonas_Jones"
-LASTFM_PASSWORD_HASH = pylast.md5("")
+LASTFM_API_KEY = os.getenv(' LASTFM_API_KEY')
+LASTFM_API_SECRET = os.getenv('LASTFM_API_SECRET')
+LASTFM_USERNAME = os.getenv('LASTFM_USERNAME')
+LASTFM_PASSWORD_HASH = os.getenv('LASTFM_PASSWORD_HASH')
 
 # Define your Spotify API credentials
-SPOTIPY_CLIENT_ID = ""
-SPOTIPY_CLIENT_SECRET = ""
-SPOTIPY_REDIRECT_URI = ""
+SPOTIPY_CLIENT_ID = os.getenv('SPOTIPY_CLIENT_ID')
+SPOTIPY_CLIENT_SECRET = os.getenv('SPOTIPY_CLIENT_SECRET')
+SPOTIPY_REDIRECT_URI = os.getenv('SPOTIPY_REDIRECT_URI')
 
 # Define your playlist IDs
-LIKEDSONGPLAYLIST_ID = ""
+LIKEDSONGPLAYLIST_ID = os.getenv('LIKEDSONGPLAYLIST_ID')
 
 def progress_bar(current, total, last_time_stamp=time.time(), etastr=None):
     current = total if current > total else current
@@ -46,7 +50,7 @@ def handle_playlist_part_return(playlist_part, all_songs):
         track_name = item["track"]["name"]
         artist_name = item["track"]["artists"][0]["name"]
         all_songs.append((track_uri, track_name, artist_name))
-        
+
     return all_songs
 
 def get_all_songs_from_playlist(playlist_id):
@@ -61,7 +65,7 @@ def get_all_songs_from_playlist(playlist_id):
         if not playlist_part["items"]:
             break
         all_songs = handle_playlist_part_return(playlist_part, all_songs)
-        
+
         progress_print, last_time_stamp = progress_bar(offset+limit, playlist_part["total"], last_time_stamp)
         verboseprint(progress_print, end="\r")
 
@@ -82,7 +86,7 @@ def get_all_liked_songs():
         if not liked_songs_chunk["items"]:
             break
         all_liked_songs = handle_playlist_part_return(liked_songs_chunk, all_liked_songs)
-        
+
         progress_print, last_time_stamp = progress_bar(offset+limit, liked_songs_chunk["total"], last_time_stamp)
         verboseprint(progress_print, end="\r")
 

@@ -3,14 +3,22 @@ from datetime import datetime
 import json
 import urllib.parse
 import time
+import os
+from dotenv import load_dotenv
+
+# load .env file
+load_dotenv()
 
 starttime = time.time()
 
-API_KEY = ""
-USERNAME = ""
+LASTFM_API_KEY = os.getenv('LASTFM_API_KEY')
+LASTFM_USERNAME = os.getenv('LASTFM_USERNAME')
+
+if not LASTFM_API_KEY or not LASTFM_USERNAME:
+    raise ValueError("Please provide the required information in the .env file.")
 
 # Get the total number of scrobbles for the user
-url = f"http://ws.audioscrobbler.com/2.0/?method=user.getinfo&user={USERNAME}&api_key={API_KEY}&format=json"
+url = f"http://ws.audioscrobbler.com/2.0/?method=user.getinfo&user={LASTFM_USERNAME}&api_key={LASTFM_API_KEY}&format=json"
 response = requests.get(url)
 data = response.json()
 total_scrobbles = int(data['user']['playcount'])
@@ -21,16 +29,16 @@ page_count = (total_scrobbles + 200 - 1) // 200
 # Fetch all scrobbles by paginating through the API responses
 all_scrobbles = []
 for page in range(1, page_count + 1):
-    url = f"http://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&user={USERNAME}&api_key={API_KEY}&format=json&page={page}"
+    url = f"http://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&user={LASTFM_USERNAME}&api_key={LASTFM_API_KEY}&format=json&page={page}"
     response = requests.get(url)
     data = response.json()
     tracks = data['recenttracks']['track']
-    
+
     for track in tracks:
         artist = urllib.parse.quote(track['artist']['#text'])
         song = urllib.parse.quote(track['name'])
-        
-        track_url = f"http://ws.audioscrobbler.com/2.0/?method=track.getInfo&api_key={API_KEY}&artist={artist}&track={song}&format=json"
+
+        track_url = f"http://ws.audioscrobbler.com/2.0/?method=track.getInfo&api_key={LASTFM_API_KEY}&artist={artist}&track={song}&format=json"
         #print(track_url)
         track_response = requests.get(track_url)
         track_data = track_response.json()

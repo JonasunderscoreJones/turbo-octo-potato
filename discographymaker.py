@@ -1,6 +1,19 @@
-SPOTIFY_KEY = ""
-SPOTIFY_SECRET = ""
-SPOTIFY_USER_ID = ""
+import os
+import spotipy
+from spotipy.oauth2 import SpotifyOAuth
+from dotenv import load_dotenv
+
+# load .env file
+load_dotenv()
+
+SPOTIFY_CLIENT_ID = os.getenv('SPOTIFY_CLIENT_ID')
+SPOTIFY_CLIENT_SECRET = os.getenv('SPOTIFY_CLIENT_SECRET')
+SPOTIFY_REDIRECT_URI = os.getenv('SPOTIFY_REDIRECT_URI')
+SPOTIFY_USER_ID = os.getenv('SPOTIFY_USER_ID')
+
+if __name__ == "__main__":
+	if not SPOTIFY_CLIENT_ID or not SPOTIFY_CLIENT_SECRET or not SPOTIFY_REDIRECT_URI:
+		raise ValueError("Please provide the required information in the .env file.")
 
 VERBOSE = True
 
@@ -18,9 +31,9 @@ def remove_duplicates(input_list: list) -> list:
     return list(set(input_list))
 
 def spotifyauth() -> spotipy.Spotify:
-    return spotipy.Spotify(auth_manager=SpotifyOAuth(client_id=SPOTIFY_KEY,
-                                        client_secret=SPOTIFY_SECRET,
-                                        redirect_uri="http://localhost:6969",
+    return spotipy.Spotify(auth_manager=SpotifyOAuth(client_id=SPOTIFY_CLIENT_ID,
+                                        client_secret=SPOTIFY_CLIENT_SECRET,
+                                        redirect_uri=SPOTIFY_REDIRECT_URI,
                                         scope="playlist-modify-public playlist-modify-private"))
 
 def getDiscographyArtist(sp: spotipy.Spotify, first = False):
@@ -31,7 +44,7 @@ def getDiscographyArtist(sp: spotipy.Spotify, first = False):
             print("======================")
             user_artist_input = input("Input your next Artist (name or Spotify ID). Leave empty if all have been inputed\n")
             if user_artist_input == "": return
-        
+
         print("Looking up Artist...")
         try:
             if len(user_artist_input) == 22:
@@ -70,7 +83,7 @@ def getArtistAlbum(sp: spotipy.Spotify, artists: list[str]) -> list[(str, str, s
                     exit()
 
             albums.append(this_artist_albums)
-                
+
         except TimeoutError:
             print("\nNetwork unreachable. THIS IS NOT RECOVERABLE. Please restart the process")
             exit()

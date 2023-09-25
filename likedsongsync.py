@@ -1,12 +1,22 @@
-LASTFM_KEY = ""
-LASTFM_SECRET = ""
-SPOTIFY_KEY = ""
-SPOTIFY_SECRET = ""
+import pylast, spotipy, sys, os, time
+from spotipy.oauth2 import SpotifyOAuth
+from dotenv import load_dotenv
+
+# load .env file
+load_dotenv()
+
+# Define your Last.fm API credentials
+LASTFM_API_KEY = os.getenv(' LASTFM_API_KEY')
+LASTFM_API_SECRET = os.getenv('LASTFM_API_SECRET')
+LASTFM_USERNAME = os.getenv('LASTFM_USERNAME')
+LASTFM_PASSWORD_HASH = os.getenv('LASTFM_PASSWORD_HASH')
+
+# Define your Spotify API credentials
+SPOTIPY_CLIENT_ID = os.getenv('SPOTIPY_CLIENT_ID')
+SPOTIPY_CLIENT_SECRET = os.getenv('SPOTIPY_CLIENT_SECRET')
+SPOTIPY_REDIRECT_URI = os.getenv('SPOTIPY_REDIRECT_URI')
 
 VERBOSE = True
-
-import pylast, os, spotipy
-from spotipy.oauth2 import SpotifyOAuth
 
 def verboseprint(message):
     if VERBOSE:
@@ -15,7 +25,7 @@ def verboseprint(message):
 #last.fm auth
 def lastfmauth():
     SESSION_KEY_FILE = os.path.join(os.path.expanduser("~"), ".session_key")
-    network = pylast.LastFMNetwork(LASTFM_KEY, LASTFM_SECRET)
+    network = pylast.LastFMNetwork(LASTFM_API_KEY, LASTFM_API_SECRET)
     if not os.path.exists(SESSION_KEY_FILE):
         skg = pylast.SessionKeyGenerator(network)
         url = skg.get_web_auth_url()
@@ -42,9 +52,9 @@ def lastfmauth():
 
 #spotify
 def spotifyauth():
-    return spotipy.Spotify(auth_manager=SpotifyOAuth(client_id=SPOTIFY_KEY,
-                                        client_secret=SPOTIFY_SECRET,
-                                        redirect_uri="http://localhost:42010",
+    return spotipy.Spotify(auth_manager=SpotifyOAuth(client_id=SPOTIPY_CLIENT_ID,
+                                        client_secret=SPOTIPY_CLIENT_SECRET,
+                                        redirect_uri=SPOTIPY_REDIRECT_URI,
                                         scope="user-library-read"))
 def show_tracks(results):
     tracknr = results['offset']
@@ -58,7 +68,7 @@ def show_tracks(results):
             track.love()
         except pylast.NetworkError:
             try:
-                sleep(1)
+                time.sleep(1)
                 track = network.get_track(track['artists'][0]['name'], track['name'])
                 track.love()
             except pylast.NetworkError:
