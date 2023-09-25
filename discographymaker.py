@@ -1,24 +1,10 @@
-import os
 import spotipy
-from spotipy.oauth2 import SpotifyOAuth
 from dotenv import load_dotenv
+import top_lib
 
-# load .env file
 load_dotenv()
 
-SPOTIFY_CLIENT_ID = os.getenv('SPOTIFY_CLIENT_ID')
-SPOTIFY_CLIENT_SECRET = os.getenv('SPOTIFY_CLIENT_SECRET')
-SPOTIFY_REDIRECT_URI = os.getenv('SPOTIFY_REDIRECT_URI')
-SPOTIFY_USER_ID = os.getenv('SPOTIFY_USER_ID')
-
-if __name__ == "__main__":
-	if not SPOTIFY_CLIENT_ID or not SPOTIFY_CLIENT_SECRET or not SPOTIFY_REDIRECT_URI:
-		raise ValueError("Please provide the required information in the .env file.")
-
 VERBOSE = True
-
-import spotipy
-from spotipy.oauth2 import SpotifyOAuth
 
 artists = []
 albums = []
@@ -29,12 +15,6 @@ def verboseprint(message: str) -> None:
 
 def remove_duplicates(input_list: list) -> list:
     return list(set(input_list))
-
-def spotifyauth() -> spotipy.Spotify:
-    return spotipy.Spotify(auth_manager=SpotifyOAuth(client_id=SPOTIFY_CLIENT_ID,
-                                        client_secret=SPOTIFY_CLIENT_SECRET,
-                                        redirect_uri=SPOTIFY_REDIRECT_URI,
-                                        scope="playlist-modify-public playlist-modify-private"))
 
 def getDiscographyArtist(sp: spotipy.Spotify, first = False):
     while True:
@@ -62,33 +42,6 @@ def getDiscographyArtist(sp: spotipy.Spotify, first = False):
         except TimeoutError:
             print("\nNetwork unreachable. Please Try again...\n")
 
-def ArtistAlbumGarbageHandler(apiresponse: list):
-    this_artist_album_part = []
-    for i in apiresponse['items']:
-        this_artist_album_part.append((i['name'], i['id'], i['release_date'], i['artists'][0]['name']))
-    verboseprint("Found " + str(len(this_artist_album_part)) + " Albums for " + apiresponse['items'][0]['artists'][0]['name'])
-    return this_artist_album_part
-
-
-def getArtistAlbum(sp: spotipy.Spotify, artists: list[str]) -> list[(str, str, str, str)]:
-    albums = []
-    for artist in artists:
-        try:
-            this_artist_albums = []
-            this_artist_album_part_garbage = sp.artist_albums(artist_id=artist, album_type="album,single,compilation", limit=50)
-            this_artist_albums = ArtistAlbumGarbageHandler(this_artist_album_part_garbage)
-            if this_artist_album_part_garbage['total'] > 50:
-                print("There currently is a bug in the Spotify API that prevents fetching anything after the first 50 Albums. Given that your artist " + this_artist_album_part_garbage['items'][0]['artists'][0]['name'] + " has more than 50 Albums, you'll need to manually add the missing ones.")
-                if input("Alternatively, you can end the script here since albums will be out of order [(E/e) to end] ") in ["E", "e", "end", "End"]:
-                    exit()
-
-            albums.append(this_artist_albums)
-
-        except TimeoutError:
-            print("\nNetwork unreachable. THIS IS NOT RECOVERABLE. Please restart the process")
-            exit()
-    return albums
-
 def insertion_sort(data_list):
     for i in range(1, len(data_list)):
         current_album = data_list[i]
@@ -101,10 +54,10 @@ def insertion_sort(data_list):
         data_list[j + 1] = current_album
     return data_list
 
-def createPlaylist(sp: spotipy.Spotify, songs: list[(str, str, str, str)], artist: str = None):
+def createPlaylist(sp: spotipy.Spotify, songs: list[(str, str, str, str)], userId:str, artist: str = None):
     if artist == None:
         artist = input("Primary Artist: ")
-    playlist = sp.user_playlist_create(SPOTIFY_USER_ID, artist + " Chronological Discography", description="Full Discography of " + artist + " and Solo Releases - no inst., no OSTs")
+    playlist = sp.user_playlist_create(userId, artist + " Chronological Discography", description="Full Discography of " + artist + " and Solo Releases - no inst., no OSTs")
     print('New Playlist created')
     print("Name: " + playlist['name'])
     print("ID: " + playlist['id'])
@@ -117,33 +70,36 @@ def createPlaylist(sp: spotipy.Spotify, songs: list[(str, str, str, str)], artis
 
     return playlist
 
-def get_song_uris(album_id):
-    album_tracks = sp.album_tracks(album_id)
-    song_uris = [track['uri'] for track in album_tracks['items']]
-    return song_uris
+if __name__ == "__main__":
+    verboseprint("Authenticating...")
+    authenticator = top_lib.Auth()
+    sp = authenticator.newSpotifyauth("playlist-modify-public playlist-modify-private")
+    verboseprint("Authenticated!")
 
-verboseprint("Authenticating...")
-sp = spotifyauth()
-verboseprint("Authenticated!")
+    spotifyManager = top_lib.SpotifyManager(sp)
 
-artist = getDiscographyArtist(sp, True)
-while artist != None:
-    artists.append(artist)
-    artist = getDiscographyArtist(sp)
+    artist = getDiscographyArtist(sp, True)
+    while artist != None:
+        artists.append(artist)
+        artist = getDiscographyArtist(sp)
 
-def sort_key(item):
-    return item[2]
+    def sort_key(item):
+        return item[2]
 
-verboseprint("Fetching Albums...")
-albums_unsorted = [item for sublist in getArtistAlbum(sp, remove_duplicates(artists)) for item in sublist]
-albums = insertion_sort(albums_unsorted)
-verboseprint("Found " + str(len(albums))+ " Albums!")
+    verboseprint("Fetching Albums...")
+    albums_unsorted = []
+    for artist in remove_duplicates(artists):
+        albums_unsorted.extend(spotifyManager.fetchArtistAlbums(artist)[0])
+        #albums_unsorted.extend()
+    #albums_unsorted = [item for sublist in spotifyManager.fetchArtistAlbums(remove_duplicates(artists)) for item in sublist]
+    albums = insertion_sort(albums_unsorted)
+    verboseprint("Found " + str(len(albums))+ " Albums!")
 
-all_song_uris = []
-for album_id in albums:
-    album_song_uris = get_song_uris(album_id[1])
-    all_song_uris.extend(album_song_uris)
+    all_song_uris = []
+    for album_id in albums:
+        album_song_uris = spotifyManager.getTrackUrisFromAlbum(album_id[1])
+        all_song_uris.extend(album_song_uris)
 
-playlist = createPlaylist(sp, all_song_uris, albums[0][3] if len(artists) == 1 else None)
+    playlist = createPlaylist(sp, all_song_uris, authenticator.getCreds()['SPOTIFY_USER_ID'], albums[0][3] if len(artists) == 1 else None)
 
-print("Playlist created! Check your Spotify!")
+    print("Playlist created! Check your Spotify!")
