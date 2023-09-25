@@ -72,7 +72,7 @@ def createPlaylist(sp: spotipy.Spotify, songs: list[(str, str, str, str)], userI
 
 if __name__ == "__main__":
     verboseprint("Authenticating...")
-    authenticator = top_lib.Auth()
+    authenticator = top_lib.Auth(verbose=VERBOSE)
     sp = authenticator.newSpotifyauth("playlist-modify-public playlist-modify-private")
     verboseprint("Authenticated!")
 
@@ -90,8 +90,6 @@ if __name__ == "__main__":
     albums_unsorted = []
     for artist in remove_duplicates(artists):
         albums_unsorted.extend(spotifyManager.fetchArtistAlbums(artist)[0])
-        #albums_unsorted.extend()
-    #albums_unsorted = [item for sublist in spotifyManager.fetchArtistAlbums(remove_duplicates(artists)) for item in sublist]
     albums = insertion_sort(albums_unsorted)
     verboseprint("Found " + str(len(albums))+ " Albums!")
 
