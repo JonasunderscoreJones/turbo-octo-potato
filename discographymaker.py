@@ -67,7 +67,6 @@ def createPlaylist(sp: spotipy.Spotify, songs: list[(str, str, str, str)], userI
         sp.playlist_add_items(playlist['id'], songs[:100])
         songs = songs[100:]
     sp.playlist_add_items(playlist['id'], songs)
-
     return playlist
 
 if __name__ == "__main__":
