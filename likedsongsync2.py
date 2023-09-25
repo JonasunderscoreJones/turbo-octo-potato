@@ -100,23 +100,6 @@ def is_track_in_playlist(playlist_song_list, track_uri):
 def add_track_to_playlist(playlist_id, track_uri):
     sp.playlist_add_items(playlist_id, [track_uri])
 
-def remove_unliked_tracks(primary_playlist_id, liked_tracks):
-    verboseprint("Removing unliked tracks from the primary playlist...")
-    liked_track_uris = [track_uri for track_uri, _, _ in liked_tracks]
-    primary_playlist_tracks = get_all_songs_from_playlist(primary_playlist_id)
-    
-    #tracks_to_remove = [track_uri for track_uri in primary_playlist_tracks if track_uri not in liked_track_uris]
-
-    tracks_to_remove = []
-    for track_uri, _, _ in primary_playlist_tracks:
-        if track_uri not in liked_track_uris:
-            tracks_to_remove.append(track_uri)
-    
-    if tracks_to_remove:
-        sp.playlist_remove_all_occurrences_of_items(primary_playlist_id, tracks_to_remove)
-        print(f"Removed {len(tracks_to_remove)} unliked track(s) from the primary playlist.")
-        print(f"Track URIs: {tracks_to_remove}")
-
 if __name__ == "__main__":
 
     # Parse command-line arguments
@@ -143,8 +126,6 @@ if __name__ == "__main__":
     # Main loop for syncing liked songs
     liked_songs = get_all_liked_songs()
 
-    #remove_unliked_tracks(LIKEDSONGPLAYLIST_ID, liked_songs)
-
     liked_songs_playlist_songs = get_all_songs_from_playlist(LIKEDSONGPLAYLIST_ID)
 
     if not FORCE_RESYNC_ALL:
@@ -153,8 +134,8 @@ if __name__ == "__main__":
         if len(liked_songs) == 0:
             print("Nothing to do.")
             exit()
-    print(f"Number of playlist songs: {len(liked_songs_playlist_songs)}")
-    print(f"Skipping the first {SKIPSONGS} songs...")
+    verboseprint(f"Number of playlist songs: {len(liked_songs_playlist_songs)}")
+    verboseprint(f"Skipping the first {SKIPSONGS} songs...")
     tracknr = 0
     last_time_stamp = time.time()
     for track_uri, track_name, artist_name in liked_songs:
@@ -190,7 +171,7 @@ if __name__ == "__main__":
                     verboseprint("                       ]")
                     verboseprint("WARN:RATELIMIT EXCEEDED] Waiting 30 seconds to proceed...")
                 else:
-                    print(e.http_status)
+                    verboseprint(e.http_status)
             except:
             # except e:
                 continue
