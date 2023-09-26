@@ -1,4 +1,4 @@
-import os, spotipy, pylast
+import os, spotipy, pylast, time
 from spotipy.oauth2 import SpotifyOAuth
 from typing import Union
 from dotenv import load_dotenv
@@ -128,12 +128,9 @@ class SpotifyManager:
             this_artist_album_part_garbage = self.spotify.artist_albums(artist_id=artist, album_type="album,single,compilation", limit=50)
             this_artist_albums = self._artistAlbumGarbageHandler(this_artist_album_part_garbage)
             if this_artist_album_part_garbage['total'] > 50:
-                print("There currently is a bug in the Spotify API that prevents fetching anything after the first 50 Albums. Given that your artist " + this_artist_album_part_garbage['items'][0]['artists'][0]['name'] + " has more than 50 Albums, you'll need to manually add the missing ones.")
-                if input("Alternatively, you can end the script here since albums will be out of order [(E/e) to end] ") in ["E", "e", "end", "End"]:
-                    exit()
+                raise SpotifyTooManyAlbumsError("There currently is a bug in the Spotify API that prevents fetching anything after the first 50 Albums. Given that your artist " + this_artist_album_part_garbage['items'][0]['artists'][0]['name'] + " has more than 50 Albums, you'll need to manually add the missing ones.")
 
             albums.append(this_artist_albums)
-
         except TimeoutError:
             print("\nNetwork unreachable. THIS IS NOT RECOVERABLE. Please restart the process")
             exit()
@@ -143,3 +140,104 @@ class SpotifyManager:
         album_tracks = self.spotify.album_tracks(album_id)
         song_uris = [track['uri'] for track in album_tracks['items']]
         return song_uris
+
+    def fetchUserFollowedArtists(self):
+        followed_artists = []
+        followed_artists_part = self.spotify.current_user_followed_artists(limit=50)
+        for artist in followed_artists_part['artists']['items']:
+            followed_artists.append((artist['id'], artist['name']))
+        while followed_artists_part['artists']['next']:
+            followed_artists_part = self.spotify.next(followed_artists_part['artists'])
+            for artist in followed_artists_part['artists']['items']:
+                followed_artists.append((artist['id'], artist['name']))
+        return followed_artists
+
+class Progressbar:
+    """Progressbar for CLI"""
+    def __init__(self, total: int=None, etaCalc=None) -> None:
+        self.total = total
+        self.etaCalc = etaCalc
+
+    def _defaultEtaCalc(self, current: int, total: int) -> int:
+        return round((total - current)* 1)
+
+    def setTotal(self, total: int) -> None:
+        """Set total"""
+        self.total = total
+
+    def setEta(self, eta) -> None:
+        """Set eta"""
+        self.etaCalc = eta
+
+    def _getWidth(self) -> int:
+        try:
+            columns = os.get_terminal_size(0).columns
+        except OSError:
+            columns = os.get_terminal_size(1).columns
+        return columns
+
+    def buildSnapshot(self, current: int, eta: int=None) -> str:
+        if not eta:
+            if self.etaCalc == None:
+                eta = "N/A"
+            else:
+                eta = self.etaCalc(current, self.total)
+                if eta < 60:
+                    eta = str(eta) + "s"
+                elif eta < 3600:
+                    eta = str(round(eta/60)) + "m"
+                else:
+                    eta = str(round(eta/3600)) + "h"
+        else:
+            eta = round((eta*(self.total - current)))
+            if eta < 60:
+               eta = str(eta) + "s"
+            elif eta < 3600:
+               eta = str(round(eta/60)) + "min"
+            else:
+               eta = str(round(eta/3600)) + "h"
+        width = self._getWidth()
+        total_num_len = len(str(self.total))
+        if width < 2* total_num_len + 15:
+            return f"{current}/{self.total}", eta
+        else:
+            if current > self.total:
+                current = self.total
+            current_spacer = " "*(total_num_len-len(str(current)))
+            percent = str(round(current/self.total*100))
+            percent = " "*(3-len(percent)) + percent
+            progress_bar_length = width - 2*total_num_len - 13 - len(str(eta)) - len(percent)
+            progress_bar_progress = round((current/self.total)*progress_bar_length)
+            progress_bar_spacer = " "*(progress_bar_length-progress_bar_progress)
+            return f"[{current_spacer}{current}/{self.total}|{percent}%|ETA: {eta}|{'='*progress_bar_progress}>{progress_bar_spacer}]"
+
+
+class ProgressBarEtaManager:
+    def __init__(self):
+        self.last_timestamp = time.time()
+        self.durations = []
+
+    def now(self):
+        self.durations.append(time.time() - self.last_timestamp)
+        self.last_timestamp = time.time()
+
+    def getDurations(self):
+        return self.durations
+
+    def getAvgEta(self):
+        return sum(self.durations)/len(self.durations)
+
+
+if __name__ == "__main__":
+    def eta(current, total):
+        return round((total - current)* 1)
+
+    progressbar = Progressbar(10, eta)
+    for i in range(10):
+        print(progressbar.buildSnapshot(i), end="\r")
+        time.sleep(1)
+
+    progressbar = Progressbar(10)
+    for i in range(10):
+        print(progressbar.buildSnapshot(i), end="\r")
+        time.sleep(1)
