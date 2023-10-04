@@ -69,6 +69,21 @@ def get_last_release_version(repo, access_token):
         print(f"Error fetching last release version for {repo}: {str(e)}")
         return None
 
+def get_languagages(repo, access_token):
+    try:
+        url = f"{BASE_URL}{repo}/languages"
+        headers = {
+            "Authorization": f"Bearer {access_token}",
+            "Accept": "application/json",
+        }
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()
+        languages_data = response.json()
+        return languages_data
+    except Exception as e:
+        print(f"Error fetching languages for {repo}: {str(e)}")
+        return None
+
 # Path to the projects.json file
 projects_json_path = os.path.expanduser("~/GitHub/jonasjones.dev/src/routes/projects/projects.json")
 
@@ -86,6 +101,9 @@ for project in projects_data:
             project["last_update"] = last_commit_timestamp
         if last_release_version:
             project["version"] = last_release_version.replace("v", "")
+        languages = get_languagages(gh_api, GITHUB_API_TOKEN)
+        if languages:
+            project["languages"] = languages
 
 # sort projects alphabetically
 projects_data = sorted(projects_data, key=lambda x: x["title"])
