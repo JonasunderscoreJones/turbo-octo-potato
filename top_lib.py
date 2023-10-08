@@ -209,7 +209,11 @@ class Progressbar:
             progress_bar_length = width - 2*total_num_len - 13 - len(str(eta)) - len(percent)
             progress_bar_progress = round((current/self.total)*progress_bar_length)
             progress_bar_spacer = " "*(progress_bar_length-progress_bar_progress)
-            return f"[{current_spacer}{current}/{self.total}|{percent}%|ETA: {eta}|{'='*progress_bar_progress}>{progress_bar_spacer}]"
+            return f"[{current_spacer}{current}/{self.total}|{percent}%|ETA: {eta}|{'~'*progress_bar_progress if percent == ' 69' else '='*progress_bar_progress}>{progress_bar_spacer}]"
+
+    def print(self, current: int, eta: int=None) -> None:
+        """Print progressbar"""
+        print(self.buildSnapshot(current, eta), end="\r")
 
 
 class ProgressBarEtaManager:
