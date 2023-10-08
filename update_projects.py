@@ -85,7 +85,14 @@ def get_languagages(repo, access_token):
         return None
 
 # Path to the projects.json file
-projects_json_path = os.path.expanduser("~/GitHub/jonasjones.dev/src/routes/projects/projects.json")
+projects_json_path = os.path.expanduser("~/.cache/gh-projects/projects.json")
+# create the directory if it doesn't exist
+os.makedirs(os.path.dirname(projects_json_path), exist_ok=True)
+# fetch the projects.json file from https://cdn.jonasjones.dev/api/projects/projects.json
+projects_json_url = "https://cdn.jonasjones.dev/api/projects/projects.json"
+projects_json = requests.get(projects_json_url)
+with open(projects_json_path, "wb") as file:
+    file.write(projects_json.content)
 
 # Load the existing projects.json file
 with open(projects_json_path, "r") as file:
@@ -113,3 +120,7 @@ with open(projects_json_path, "w") as file:
     json.dump(projects_data, file, indent=2)
 
 print("Updated projects.json")
+
+os.system(f"rclone copy {projects_json_path} cdn:cdn/api/projects/")
+
+print("Uploaded projects.json to cdn")
