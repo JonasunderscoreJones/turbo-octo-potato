@@ -182,6 +182,7 @@ class Progressbar:
                 eta = "N/A"
             else:
                 eta = self.etaCalc(current, self.total)
+                eta = eta if eta >= 0 else 0
                 if eta < 60:
                     eta = str(eta) + "s"
                 elif eta < 3600:
