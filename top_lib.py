@@ -229,7 +229,8 @@ class ProgressBarEtaManager:
         return self.durations
 
     def getAvgEta(self):
-        return sum(self.durations)/len(self.durations)
+        eta = sum(self.durations)/len(self.durations)
+        return eta if eta >= 0 else 0
 
 
 if __name__ == "__main__":
