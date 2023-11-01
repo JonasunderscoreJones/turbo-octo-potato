@@ -145,7 +145,7 @@ if __name__ == "__main__":
     progressbar = top_lib.Progressbar()
     progressbar.setTotal(len(liked_songs))
     progressBarEtaManager = top_lib.ProgressBarEtaManager()
-    for track_uri, track_name, artist_name in liked_songs:
+    for track_uri, track_name, artist_name in liked_songs[::-1]:
         tracknr += 1
 
         def loop_do(last_time_stamp):
