@@ -106,6 +106,8 @@ for project in projects_data:
         last_release_version = get_last_release_version(gh_api, GITHUB_API_TOKEN)
         if last_commit_timestamp:
             project["last_update"] = last_commit_timestamp
+        else:
+            project["last_update"] = 0
         if last_release_version:
             project["version"] = last_release_version.replace("v", "")
         languages = get_languagages(gh_api, GITHUB_API_TOKEN)
@@ -113,7 +115,7 @@ for project in projects_data:
             project["languages"] = languages
 
 # sort projects alphabetically
-projects_data = sorted(projects_data, key=lambda x: x["title"])
+projects_data = sorted(projects_data, key=lambda x: x['last_update'], reverse=True)
 
 # Save the updated data back to the projects.json file
 with open(projects_json_path, "w") as file:
