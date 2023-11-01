@@ -19,7 +19,7 @@ def remove_duplicates(input_list: list) -> list:
 def getDiscographyArtist(sp: spotipy.Spotify, first = False):
     while True:
         if first:
-            user_artist_input = input("Input your first Artist (name or spotify ID). Enter other's when prompted next:\n")
+            user_artist_input = input("Input your first Artist (name, spotify ID or artist link). Enter other's when prompted next:\n")
         else:
             print("======================")
             user_artist_input = input("Input your next Artist (name or Spotify ID). Leave empty if all have been inputed\n")
@@ -30,6 +30,11 @@ def getDiscographyArtist(sp: spotipy.Spotify, first = False):
             if len(user_artist_input) == 22:
                 if input("Did you Enter an ID? [ENTER for Yes, No for treating your Input as a name]: ") == "":
                     return user_artist_input
+            if len(user_artist_input) >= 54:
+                withoutlink = user_artist_input.replace("https://open.spotify.com/artist/", "")
+                if len(withoutlink) + 32 == len(user_artist_input):
+                    print(withoutlink[0:22])
+                    return withoutlink[0:22]
             search_results = sp.search(q=user_artist_input, type='artist', limit=1)
             if search_results['artists']['items'][0]['name'] != user_artist_input:
                 correct_input = input(" The Artist doesn't exist on Spotify. Did you mean \"" + search_results['artists']['items'][0]['name'] + "\" [ENTER for Yes, No for retry]: ")
