@@ -6,8 +6,6 @@ import re
 import json
 import time
 
-dotenv.load_dotenv()
-
 def fetch_main_reddit_wiki_page(subreddit_name, page_name):
 
     try:
@@ -86,8 +84,13 @@ def convert_monthly_content_to_json(content, year, month):
             if parts[5]:
                 parts[5] = parts[5].group(1)
                 if parts[5].startswith("/"):
+                    # if the link is a relative link, add the domain
                     parts[5] = "https://www.reddit.com" + parts[5]
 
+            # if the song links are provided, parse them
+            # do this by splitting the string by " / "
+            # and then parsing the markdown syntax
+            # to get the actual link
             if parts[6] != "":
                 parts[6] = parts[6].split(" / ")
                 links = []
@@ -97,18 +100,25 @@ def convert_monthly_content_to_json(content, year, month):
                     if link:
                         link = link.group(1)
                     links.append(link)
+                # replace the string with the list of links
                 parts[6] = links
+                # remove the last element if it's empty
+                # sometimes the markdown is messy
                 if parts[-1] == "":
                     parts.pop(-1)
             else:
+                # if the song links are not provided, replace the string with an empty list
                 parts[6] = []
             
+            # add the reddit link to the list of links
             reddit = parts.pop(5)
             if reddit != "":
                 parts[5].append(reddit)
             
+            # remove the "th", "st", "nd", "rd" from the day
             parts[0] = parts[0].replace('th', '').replace('st', '').replace('nd', '').replace('rd', '')
             
+            # create a json entry from the parsed data
             json_entry = {
                 "date": f"{year}-{month}-{parts[0]}",
                 "time": parts[1],
@@ -120,10 +130,13 @@ def convert_monthly_content_to_json(content, year, month):
 
             
             json_data.append(json_entry)
-            #print(json_entry)
+
         except Exception as e:
+            # if the line doesn't start with a pipe, ignore it
+            # these lines are not part of the table
             if not line.startswith("|"):
                 continue
+            # other issues are logged but ignored
             else:
                 print("[IGNORED] Error parsing line: '" + line + "'")
                 print(e)
@@ -138,7 +151,9 @@ def fetch_monthly_page(wiki_link, subreddit_name):
         subreddit = reddit.subreddit(subreddit_name)
         wiki_page = subreddit.wiki[f"{wiki_link}"].content_md
 
+        # remove the first part of the wiki page before the table
         wiki_page = wiki_page[wiki_page.find("|--|--|"):]
+        # remove the last part of the wiki page after the table
         wiki_page = wiki_page[wiki_page.find("\n") + 1:]
         #wiki_page = wiki_page[:wiki_page.find("\n\n")]
 
@@ -165,20 +180,26 @@ def fetch_monthly_page(wiki_link, subreddit_name):
         return None
 
 
-# Example usage:
+# reddit infos
 subreddit_name = "kpop"
 wiki_page_name = "upcoming-releases/archive"
+
+# reddit instance
+dotenv.load_dotenv()
 
 reddit = praw.Reddit(
         client_id=os.getenv('REDDIT_CLIENT_ID'),
         client_secret=os.getenv('REDDIT_CLIENT_SECRET'),
         user_agent=os.getenv('REDDIT_USER_AGENT')
     )
+
+# fetch subreddit
 try:
         subreddit = reddit.subreddit(subreddit_name)
 except praw.exceptions.PRAWException as e:
         print(f"Error fetching subreddit: {e}")
 
+# fetch wiki page
 content = fetch_main_reddit_wiki_page(subreddit_name, wiki_page_name)
 
 if content:
@@ -190,6 +211,7 @@ if content:
         print("Fetching monthly page: " + wiki_link)
             
         try:
+            # fetch the monthly page and parse it
             json_data += fetch_monthly_page(wiki_link, subreddit_name)
         except Exception as e:
             # write json_data to file
