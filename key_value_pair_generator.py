@@ -1,3 +1,4 @@
+'''Generates key-value pairs and saves them to a file.'''
 # Open the file in write mode ('w')
 with open('uwu.txt', 'w') as file:
     while True:
