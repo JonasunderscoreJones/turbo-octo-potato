@@ -84,8 +84,11 @@ def convert_monthly_content_to_json(content, year, month):
             # clear the text from any leading spaces
             while parts[3].startswith(" "):
                 parts[3] = parts[3][1:]
-            if (parts[3].startswith("[") and parts[3].endswith(")")) or (parts[3].startswith("*[") and parts[3].endswith(")*")):
-                parts[3] = parts[3][1:parts[3].find("]")]
+            if (parts[3].startswith("[") and parts[3].endswith(")")):
+                parts[3] = parts[3][1:parts[3].find("](")]
+            
+            if (parts[3].startswith("*[") and parts[3].endswith(")*")):
+                parts[3] = parts[3][2:parts[3].find("](")]
             
             releasetype = []
 
