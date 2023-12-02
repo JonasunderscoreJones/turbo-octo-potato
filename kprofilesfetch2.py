@@ -5,6 +5,7 @@ import markdown
 import re
 import json
 import time
+import sys
 
 def fetch_main_reddit_wiki_page(subreddit_name, page_name):
 
@@ -77,6 +78,65 @@ def convert_monthly_content_to_json(content, year, month):
                 parts[5] = parts[5][1:-1]
             if parts[6].startswith("*") and parts[6].endswith("*"):
                 parts[6] = parts[6][1:-1]
+
+            # check if parts[3] is a link
+            # if it is, remove the link syntax and keep the text
+            # clear the text from any leading spaces
+            while parts[3].startswith(" "):
+                parts[3] = parts[3][1:]
+            if (parts[3].startswith("[") and parts[3].endswith(")")) or (parts[3].startswith("*[") and parts[3].endswith(")*")):
+                parts[3] = parts[3][1:parts[3].find("]")]
+            
+            releasetype = []
+
+            # parse the release type
+            if "anniversary" in parts[4].lower():
+                releasetype.append("anniversary")
+            if "debut" in parts[4].lower():
+                releasetype.append("debut")
+            if "comeback" in parts[4].lower():
+                releasetype.append("comeback")
+            if "pre-release" in parts[4].lower():
+                releasetype.append("pre-release")
+            if "collab" in parts[4].lower():
+                releasetype.append("collab")
+            if "album" in parts[4].lower():
+                releasetype.append("album")
+            if "single" in parts[4].lower():
+                releasetype.append("single")
+            if "full-length album" in parts[4].lower():
+                releasetype.append("full-length")
+            if "mini album" in parts[4].lower():
+                releasetype.append("mini")
+            if "repackage" in parts[4].lower():
+                releasetype.append("repackage")
+            if "remix" in parts[4].lower():
+                releasetype.append("remix")
+            if "solo" in parts[4].lower():
+                releasetype.append("solo")
+            if "japanese" in parts[4].lower():
+                releasetype.append("japanese")
+            if "chinese" in parts[4].lower():
+                releasetype.append("chinese")
+            if "english" in parts[4].lower():
+                releasetype.append("english")
+            if "digital" in parts[4].lower():
+                releasetype.append("digital")
+            if "remake" in parts[4].lower():
+                releasetype.append("remake")
+            if "mixtape" in parts[4].lower():
+                releasetype.append("mixtape")
+            if "unit debut" in parts[4].lower():
+                releasetype.append("unit debut")
+            if "live" in parts[4].lower():
+                releasetype.append("live")
+            if "cover" in parts[4].lower():
+                releasetype.append("cover")
+            if "holiday" in parts[4].lower():
+                releasetype.append("holiday")
+
+            parts[4] = releasetype
+
             # get the link from the markdown syntax
             parts[5] = markdown.markdown(parts[5])
             link_pattern = re.compile(r'<a\s+(?:[^>]*?\s+)?href="([^"]*)"', re.IGNORECASE)
@@ -124,7 +184,7 @@ def convert_monthly_content_to_json(content, year, month):
                 "time": parts[1],
                 "artist": parts[2],
                 "title": parts[3],
-                "album": parts[4],
+                "type": parts[4],
                 "links": parts[5]
             }
 
@@ -179,6 +239,7 @@ def fetch_monthly_page(wiki_link, subreddit_name):
         print(f"Error fetching Reddit wiki page: {e}")
         return None
 
+UPLOAD_TO_CDN = True if "--cdn" in sys.argv else False
 
 # reddit infos
 subreddit_name = "kpop"
@@ -223,10 +284,23 @@ if content:
 
         print("Parsed monthly page: " + wiki_link)
 
+        # sleep for 2 seconds to avoid getting rate limited
+        # reddit api is awful
         time.sleep(2)
+    
+    # add a first element to the list that holds the date of the last update
+    json_data.insert(0, {"last_update": time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime()) + " UTC"})
+
 
     # save json_data to file
-    with open(f"{subreddit_name}_upcoming_releases.json", "w") as f:
+    with open(f"rkpop_data.json", "w") as f:
         f.write(json.dumps(json_data, indent=4))
     
-    print("Fetched", len(json_data), "entries.")
+    print("Fetched", len(json_data) - 1, "entries.")
+
+    cdn_upload_cmd = "rclone copy rkpop_data.json cdn:cdn/api/kcomebacks/"
+
+    if UPLOAD_TO_CDN:
+        os.system(cdn_upload_cmd)
+    elif input("Upload to cdn? [Y/n]") in ["Y", "y", ""]:
+        os.system(cdn_upload_cmd)
