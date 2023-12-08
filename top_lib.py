@@ -121,13 +121,13 @@ class SpotifyManager:
         #verboseprint("Found " + str(len(this_artist_album_part)) + " Albums for " + apiresponse['items'][0]['artists'][0]['name'])
         return this_artist_album_part
 
-    def fetchArtistAlbums(self, artist: str) -> list[(str, str, str, str)]:
+    def fetchArtistAlbums(self, artist: str, raise_error = True) -> list[(str, str, str, str)]:
         albums = []
         try:
             this_artist_albums = []
             this_artist_album_part_garbage = self.spotify.artist_albums(artist_id=artist, album_type="album,single,compilation", limit=50)
             this_artist_albums = self._artistAlbumGarbageHandler(this_artist_album_part_garbage)
-            if this_artist_album_part_garbage['total'] > 50:
+            if this_artist_album_part_garbage['total'] > 50 and raise_error:
                 raise SpotifyTooManyAlbumsError("There currently is a bug in the Spotify API that prevents fetching anything after the first 50 Albums. Given that your artist " + this_artist_album_part_garbage['items'][0]['artists'][0]['name'] + " has more than 50 Albums, you'll need to manually add the missing ones.")
 
             albums.append(this_artist_albums)
