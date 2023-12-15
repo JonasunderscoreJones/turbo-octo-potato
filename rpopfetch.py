@@ -204,7 +204,7 @@ def convert_monthly_content_to_json(content, year, month):
                 print("[IGNORED] Error parsing line: '" + line + "'")
                 print(e)
 
-    print(f"Found {len(json_data)} entries in {year}-{month}.")
+    print(f"   ==>Found {len(json_data)} entries in {year}-{month}.")
     return json_data
 
 
@@ -272,7 +272,14 @@ if content:
 
     for wiki_link in content[::-1]:
 
-        print("Fetching monthly page: " + wiki_link)
+        progress = int(content[::-1].index(wiki_link)/len(content)*100)
+
+        if progress < 10:
+            progress = "  " + str(progress)
+        elif progress < 100:
+            progress = " " + str(progress)
+
+        print(f"[{progress}%]Fetching monthly page: " + wiki_link)
             
         try:
             # fetch the monthly page and parse it
@@ -285,7 +292,7 @@ if content:
             print(e)
             exit(1)
 
-        print("Parsed monthly page: " + wiki_link)
+        print(f"[{progress}%]Parsed monthly page: " + wiki_link)
 
         # sleep for 2 seconds to avoid getting rate limited
         # reddit api is awful
