@@ -270,7 +270,7 @@ if content:
 
     json_data = []
 
-    for wiki_link in content:
+    for wiki_link in content[::-1]:
 
         print("Fetching monthly page: " + wiki_link)
             
