@@ -187,7 +187,7 @@ def convert_monthly_content_to_json(content, year, month):
                 "time": parts[1],
                 "artist": parts[2],
                 "title": parts[3],
-                "type": parts[4],
+                "types": parts[4],
                 "links": parts[5]
             }
 
