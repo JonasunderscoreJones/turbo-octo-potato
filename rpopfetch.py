@@ -182,7 +182,7 @@ def convert_monthly_content_to_json(content, year, month):
             parts[0] = parts[0].replace('th', '').replace('st', '').replace('nd', '').replace('rd', '')
 
             # make the links an empty list if it's null
-            if parts[5] == None:
+            if parts[5] == [None]:
                 parts[5] = []
             
             # create a json entry from the parsed data
