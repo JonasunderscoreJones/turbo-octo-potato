@@ -1,8 +1,17 @@
 import os
+import sys
 import json
 import requests
 from datetime import datetime
 from dotenv import load_dotenv
+
+VERBOSEPRINT = "-v" in sys.argv or "--verbose" in sys.argv
+
+def verboseprint(string="", end="\n"):
+    if VERBOSEPRINT:
+        print(string, end=end)
+
+verboseprint(f"Printing verbose logs")
 
 # Load environment variables from .env file
 load_dotenv()
@@ -24,9 +33,10 @@ def get_default_branch(repo, access_token):
         response.raise_for_status()
         repo_data = response.json()
         default_branch = repo_data["default_branch"]
+        verboseprint(f"Fdtched default branch for {BASE_URL}{repo}")
         return default_branch
     except Exception as e:
-        print(f"Error fetching default branch for {repo}: {str(e)}")
+        verboseprint(f"Error fetching default branch for {repo}: {str(e)}")
         return None
 
 # Function to get the timestamp of the last commit date for a GitHub repository
@@ -45,6 +55,7 @@ def get_last_commit_timestamp(repo, access_token):
         last_commit_date = commit_data["commit"]["author"]["date"]
         # Convert last_commit_date to Unix timestamp
         timestamp = datetime.strptime(last_commit_date, '%Y-%m-%dT%H:%M:%SZ').timestamp()
+        verboseprint(f"Fetched timestamp for {BASE_URL}{repo}")
         return int(timestamp)
     return None
 
@@ -64,6 +75,7 @@ def get_last_release_version(repo, access_token):
         response.raise_for_status()
         release_data = response.json()
         last_release_version = release_data["tag_name"]
+        verboseprint(f"Fetched release version for {BASE_URL}{repo}")
         return last_release_version
     except Exception as e:
         print(f"Error fetching last release version for {repo}: {str(e)}")
@@ -79,6 +91,7 @@ def get_languagages(repo, access_token):
         response = requests.get(url, headers=headers)
         response.raise_for_status()
         languages_data = response.json()
+        verboseprint(f"Fetched language data for {BASE_URL}{repo}")
         return languages_data
     except Exception as e:
         print(f"Error fetching languages for {repo}: {str(e)}")
@@ -93,6 +106,8 @@ projects_json_url = "https://cdn.jonasjones.dev/api/projects/projects.json"
 projects_json = requests.get(projects_json_url)
 with open(projects_json_path, "wb") as file:
     file.write(projects_json.content)
+
+verboseprint(f"Fetched projects.json file")
 
 # Load the existing projects.json file
 with open(projects_json_path, "r") as file:
