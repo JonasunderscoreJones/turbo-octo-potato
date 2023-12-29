@@ -208,7 +208,7 @@ def convert_monthly_content_to_json(content, year, month):
                 print("[IGNORED] Error parsing line: '" + line + "'")
                 print(e)
 
-    print(f"   ==>Found {len(json_data)} entries in {year}-{month}.")
+    print(f"[{progress}%] Found and parsed {len(json_data)} entries in {year}-{month}." + " "*17)
     return json_data
 
 
@@ -225,7 +225,7 @@ def fetch_monthly_page(wiki_link, subreddit_name):
         #wiki_page = wiki_page[:wiki_page.find("\n\n")]
 
         year = wiki_link.split('/')[1]
-        month = wiki_link.split('/')[2]
+        month = wiki_link.split('/')[2].lower()
 
         month = month.replace("january", "01")
         month = month.replace("february", "02")
@@ -262,6 +262,8 @@ reddit = praw.Reddit(
     )
 
 # fetch subreddit
+print("Fetching Months...")
+
 try:
         subreddit = reddit.subreddit(subreddit_name)
 except praw.exceptions.PRAWException as e:
@@ -270,21 +272,28 @@ except praw.exceptions.PRAWException as e:
 # fetch wiki page
 content = fetch_main_reddit_wiki_page(subreddit_name, wiki_page_name)
 
+print("Done!")
+
 if content:
 
     json_data = []
 
     for wiki_link in content[::-1]:
 
-        progress = int(content[::-1].index(wiki_link)/len(content)*100)
+        progress = int(content[::-1].index(wiki_link)+1/len(content)*100)
 
         if progress < 10:
             progress = "  " + str(progress)
         elif progress < 100:
             progress = " " + str(progress)
 
-        print(f"[{progress}%]Fetching monthly page: " + wiki_link)
-            
+        #print("   ==>", end="\n")
+        print(f"[{progress}%] Fetching monthly page: " + wiki_link, end="\r")
+
+        # sleep for 2 seconds to avoid getting rate limited
+        # reddit api is awful
+        time.sleep(2)
+
         try:
             # fetch the monthly page and parse it
             json_data += fetch_monthly_page(wiki_link, subreddit_name)
@@ -296,12 +305,8 @@ if content:
             print(e)
             exit(1)
 
-        print(f"[{progress}%]Parsed monthly page: " + wiki_link)
+        #print(f"[{progress}%] Parsed monthly page: " + wiki_link + "  ", end="\r")
 
-        # sleep for 2 seconds to avoid getting rate limited
-        # reddit api is awful
-        time.sleep(2)
-    
     # add a first element to the list that holds the date of the last update
     json_data.insert(0, {"last_update": time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime()) + " UTC"})
 
@@ -315,6 +320,8 @@ if content:
     cdn_upload_cmd = "rclone copy rkpop_data.json cdn:cdn/api/kcomebacks/"
 
     if UPLOAD_TO_CDN:
+        print("Uploading...")
         os.system(cdn_upload_cmd)
     elif input("Upload to cdn? [Y/n]") in ["Y", "y", ""]:
+        print("Uploading...")
         os.system(cdn_upload_cmd)
