@@ -93,7 +93,7 @@ if __name__ == "__main__":
     verboseprint("Fetching Albums...")
     albums_unsorted = []
     for artist in remove_duplicates(artists):
-        albums_unsorted.extend(spotifyManager.fetchArtistAlbums(artist)[0])
+        albums_unsorted.extend(spotifyManager.fetchArtistAlbums(artist, raise_error=False)[0])
     albums = insertion_sort(albums_unsorted)
     verboseprint("Found " + str(len(albums))+ " Albums!")
 
