@@ -39,7 +39,7 @@ def get_default_branch(repo, access_token):
         verboseprint(f"[{repo}] Fetched default branch", end="\r")
         return default_branch
     except Exception as e:
-        verboseprint(f"Error fetching default branch for {repo}: {str(e)}")
+        verboseprint(f"[{repo}] Error fetching default branch      ", end="\r")
         return None
 
 # Function to get the timestamp of the last commit date for a GitHub repository
@@ -81,7 +81,7 @@ def get_last_release_version(repo, access_token):
         verboseprint(f"[{repo}] Fetched last project release version", end="\r")
         return last_release_version
     except Exception as e:
-        print(f"Error fetching last release version for {repo}: {str(e)}")
+        print(f"[{repo}] Error fetching last release version", end="\r")
         return None
 
 def get_languagages(repo, access_token):
@@ -98,7 +98,7 @@ def get_languagages(repo, access_token):
         verboseprint(f"[{repo}] Done!                               ")
         return languages_data
     except Exception as e:
-        print(f"Error fetching languages for {repo}: {str(e)}")
+        print(f"[{repo}] Error fetching languages           ", end="\n")
         return None
 
 # Path to the projects.json file
