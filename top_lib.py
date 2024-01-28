@@ -66,7 +66,7 @@ class Auth:
         self.lastfm_network.session_key = session_key
         return self.lastfm_network
 
-    def newSpotifyauth(self, scope:str) -> spotipy.Spotify:
+    def newSpotifyauth(self, scope: str) -> spotipy.Spotify:
         """
         Authenticate with Spotify
 
@@ -77,10 +77,22 @@ class Auth:
         if not self.SPOTIPY_CLIENT_ID or not self.SPOTIPY_CLIENT_SECRET or not self.SPOTIPY_REDIRECT_URI:
             raise ValueError("Please provide SPOTIPY_CLIENT_ID, SPOTIPY_CLIENT_SECRET, and SPOTIPY_REDIRECT_URI in the .env file.")
 
-        self.spotify = spotipy.Spotify(auth_manager=SpotifyOAuth(client_id=self.SPOTIPY_CLIENT_ID,
-                                            client_secret=self.SPOTIPY_CLIENT_SECRET,
-                                            redirect_uri=self.SPOTIPY_REDIRECT_URI,
-                                            scope=scope))
+        # Create a SpotifyOAuth instance with headless=True
+        sp_oauth = SpotifyOAuth(
+            self.SPOTIPY_CLIENT_ID,
+            self.SPOTIPY_CLIENT_SECRET,
+            self.SPOTIPY_REDIRECT_URI,
+            scope=scope,
+            cache_path=".cache",
+            show_dialog=False,  # Set this to False to avoid opening the browser
+            open_browser=False  # Set this to False to avoid opening the browser
+        )
+
+        # Get the access token and refresh token
+        token_info = sp_oauth.get_access_token()
+
+        # Create a Spotipy instance using the obtained token
+        self.spotify = spotipy.Spotify(auth=token_info['access_token'])
         return self.spotify
 
     def getSpotify(self) -> spotipy.Spotify:
