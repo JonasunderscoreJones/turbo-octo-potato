@@ -44,7 +44,7 @@ def send_webhook():
         data += data2['results']
 
     # Create the message content
-    content = "Here are the comebacks from today:\n"
+    content = "# Here are the comebacks from this week:\n"
     for i in data:
         content += f"{i['date']} > {i['title']} - {i['artist']}: {i['links'] if i['links'] != [] else '*No Links*'}\n"
 
@@ -61,3 +61,7 @@ def send_webhook():
         print("Webhook sent successfully!")
     else:
         print(f"Failed to send webhook. Status code: {response.status_code}")
+
+
+if __name__ == "__main__":
+    send_webhook()
