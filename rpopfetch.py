@@ -6,6 +6,7 @@ import re
 import json
 import time
 import sys
+import rpop_webhook
 
 def fetch_main_reddit_wiki_page(subreddit_name, page_name):
 
@@ -86,10 +87,10 @@ def convert_monthly_content_to_json(content, year, month):
                 parts[3] = parts[3][1:]
             if (parts[3].startswith("[") and parts[3].endswith(")")):
                 parts[3] = parts[3][1:parts[3].find("](")]
-            
+
             if (parts[3].startswith("*[") and parts[3].endswith(")*")):
                 parts[3] = parts[3][2:parts[3].find("](")]
-            
+
             releasetype = []
 
             # parse the release type
@@ -172,19 +173,19 @@ def convert_monthly_content_to_json(content, year, month):
             else:
                 # if the song links are not provided, replace the string with an empty list
                 parts[6] = []
-            
+
             # add the reddit link to the list of links
             reddit = parts.pop(5)
             if reddit != "":
                 parts[5].append(reddit)
-            
+
             # remove the "th", "st", "nd", "rd" from the day
             parts[0] = parts[0].replace('th', '').replace('st', '').replace('nd', '').replace('rd', '')
 
             # make the links an empty list if it's null
             if parts[5] == [None]:
                 parts[5] = []
-            
+
             # create a json entry from the parsed data
             json_entry = {
                 "date": f"{year}-{month}-{parts[0]}",
@@ -195,7 +196,7 @@ def convert_monthly_content_to_json(content, year, month):
                 "links": parts[5]
             }
 
-            
+
             json_data.append(json_entry)
 
         except Exception as e:
@@ -247,6 +248,7 @@ def fetch_monthly_page(wiki_link, subreddit_name):
         return None
 
 UPLOAD_TO_CDN = True if "--cdn" in sys.argv else False
+SEND_WEBHOOK = False if "--no-webhook" in sys.argv else False if "-nwh" in sys.argv else True
 
 # reddit infos
 subreddit_name = "kpop"
@@ -314,7 +316,7 @@ if content:
     # save json_data to file
     with open(f"rkpop_data.json", "w") as f:
         f.write(json.dumps(json_data, indent=4))
-    
+
     print("Fetched", len(json_data) - 1, "entries.")
 
     cdn_upload_cmd = "rclone copy rkpop_data.json cdn:cdn/api/kcomebacks/"
@@ -325,3 +327,7 @@ if content:
     elif input("Upload to cdn? [Y/n]") in ["Y", "y", ""]:
         print("Uploading...")
         os.system(cdn_upload_cmd)
+
+
+if SEND_WEBHOOK:
+    rpop_webhook.send_webhook()
