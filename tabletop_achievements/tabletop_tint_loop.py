@@ -2,23 +2,40 @@ import pyautogui
 import time
 import random
 
+# The position of the right-click to open the context menu on an object
 RIGHTCLICK_X = 1890
 RIGHTCLICK_Y = 970
+
+# The position of the "Color Tint" button in the context menu
 FIRSTCLICK_X = 2055
 FIRSTCLICK_Y = 1225
+
+# The position of the upper left corner of the color-selector square
 SECONDCLICK_XMIN = 600
-SECONDCLICK_XMAX = 1100
 SECONDCLICK_YMIN = 600
+
+# The position of the lower right corner of the color-selector square
+SECONDCLICK_XMAX = 1100
 SECONDCLICK_YMAX = 1100
+
+# The position of the "Apply" button of the color selector
 CONFIRMCLICK_X = 760
 CONFIRMCLICK_Y = 1550
+
+# The timeout for UI elements to load (in seconds)
 SLEEPTIME = 0.15
 
-time.sleep(3)
-#pyautogui.click(RIGHTCLICK_X, RIGHTCLICK_Y, button='right')
+# initialize the counter
+count = 0
 
-while True:
-    # Click at pixel (2055, 1225)
+time.sleep(3) # delay to focus the game after launching the script
+
+# Move to and rightclick on the object
+pyautogui.moveTo(RIGHTCLICK_X, RIGHTCLICK_Y)
+pyautogui.click(RIGHTCLICK_X, RIGHTCLICK_Y, button='right')
+
+while count < 1000:
+    # Click on the "Color Tint" option
     pyautogui.click(FIRSTCLICK_X, FIRSTCLICK_Y)
     time.sleep(SLEEPTIME)
 
@@ -30,6 +47,6 @@ while True:
     pyautogui.click(x, y)
     time.sleep(SLEEPTIME)
 
-    # Click at pixel (760, 1550)
+    # Click on the "Apply" button
     pyautogui.click(CONFIRMCLICK_X, CONFIRMCLICK_Y)
     time.sleep(SLEEPTIME)
