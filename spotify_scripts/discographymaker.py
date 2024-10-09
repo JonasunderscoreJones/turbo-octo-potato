@@ -1,5 +1,9 @@
-import spotipy
 from dotenv import load_dotenv
+import spotipy
+import sys
+import os
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import top_lib
 
 load_dotenv()

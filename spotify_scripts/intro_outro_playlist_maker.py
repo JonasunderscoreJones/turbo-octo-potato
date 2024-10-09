@@ -1,7 +1,10 @@
 '''Make a playlist of all the intro/outro songs from your followed artists'''
-import os
 from dotenv import load_dotenv
+import spotipy
+import sys
+import os
 
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import top_lib
 
 # WARNING: THIS WILL RATELIMIT THE SHIT OUT OF YOUR ACCOUNT

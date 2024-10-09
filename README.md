@@ -3,6 +3,9 @@ random scripts (the repo name was recommended by github)
 
 *These scripts where once used to automate silly tasks*
 
+# DOCUMENTATION
+Visit [docs.jonasjones.dev/turbo-octo-potato](https://docs.jonasjones.dev/turbo-octo-potato) for the documentation to these scripts
+
 # Use at your own risk!
 These are mostly undocumented and potentially unsafe/hacky/silly scripts that I can't bother to keep around in my Downloads folder.
 

@@ -1,11 +1,12 @@
 '''A script to sync your liked songs from Spotify to Last.fm and a Spotify 
 playlist that can be made public (unlike the built-in liked songs playlist).'''
+import time
+from dotenv import load_dotenv
+import spotipy
 import sys
 import os
-import time
-import spotipy
-from dotenv import load_dotenv
 
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import top_lib
 
 # load .env file

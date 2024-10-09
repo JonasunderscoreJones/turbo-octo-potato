@@ -1,7 +1,11 @@
 import spotipy
 from spotipy.oauth2 import SpotifyOAuth
-import hashlib, os
+import hashlib
 from dotenv import load_dotenv
+import sys
+import os
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import top_lib
 
 def encrypt_playlist_name(name):

@@ -1,10 +1,12 @@
 '''Fetch the monthly comeback/debut/release pages on kprofiles.com'''
-import os
-import sys
 import datetime
 import requests
 import dotenv
+import spotipy
+import sys
+import os
 
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import top_lib
 
 dotenv.load_dotenv()
