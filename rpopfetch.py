@@ -333,5 +333,5 @@ def main():
     if SEND_WEBHOOK:
         rpop_webhook.send_webhook()
 
-if "__name__" == "__main__":
+if __name__ == "__main__":
     main()
