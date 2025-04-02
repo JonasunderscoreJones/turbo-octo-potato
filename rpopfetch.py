@@ -251,6 +251,10 @@ def main():
     UPLOAD_TO_CDN = True if "--cdn" in sys.argv else False
     SEND_WEBHOOK = False if "--no-webhook" in sys.argv else False if "-nwh" in sys.argv else True
 
+    # because im lazy
+    global reddit
+    global progress
+
     # reddit infos
     subreddit_name = "kpop"
     wiki_page_name = "upcoming-releases/archive"
