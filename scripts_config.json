@@ -1,0 +1,26 @@
+[
+    {
+        "name": "Kcomebacks Sync",
+        "filename": "rpopfetch.py",
+        "method": "main",
+        "interval": 86400,
+        "retry_on_error": "true",
+        "launch_flags": ["--cdn"]
+    },
+    {
+        "name": "Project Sync",
+        "filename": "update_projects.py",
+        "method": "main",
+        "interval": 360,
+        "retry_on_error": "false",
+        "launch_flags": ["--cdn"]
+    },
+    {
+        "name": "Likedsongsync 2",
+        "filename": "run_likedsongsync2.py",
+        "method": "run",
+        "interval": 10800,
+        "retry_on_error": "true",
+        "launch_flags": [""]
+    }
+]
