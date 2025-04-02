@@ -299,7 +299,7 @@ def main():
 
             # sleep for 2 seconds to avoid getting rate limited
             # reddit api is awful
-            time.sleep(2)
+            # time.sleep(2)
 
             try:
                 # fetch the monthly page and parse it
