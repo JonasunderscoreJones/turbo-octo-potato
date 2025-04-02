@@ -9,11 +9,7 @@ import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import top_lib
 
-# load .env file
-load_dotenv()
 
-# Define your playlist IDs
-LIKEDSONGPLAYLIST_ID = os.getenv('LIKEDSONGPLAYLIST_ID')
 
 def progress_bar(current, total, last_time_stamp=float, etastr=None):
     '''A function to print a progress bar to the terminal.
@@ -155,8 +151,16 @@ def add_track_to_playlist(playlist_id, track_uri):
     track_uri: The URI of the track to add to the playlist'''
     sp.playlist_add_items(playlist_id, [track_uri])
 
+def main():
+    # load .env file
+    load_dotenv()
 
-if __name__ == "__main__":
+    # because im lazy
+    global VERBOSE_LOGGING
+    global sp
+
+    # Define your playlist IDs
+    LIKEDSONGPLAYLIST_ID = os.getenv('LIKEDSONGPLAYLIST_ID')
 
     # Parse command-line arguments
     VERBOSE_LOGGING = "-v" in sys.argv or "--verbose" in sys.argv
@@ -258,3 +262,7 @@ if __name__ == "__main__":
             except Exception:
             #except e:
                 continue
+
+
+if __name__ == "__main__":
+    main()
