@@ -247,87 +247,91 @@ def fetch_monthly_page(wiki_link, subreddit_name):
         print(f"Error fetching Reddit wiki page: {e}")
         return None
 
-UPLOAD_TO_CDN = True if "--cdn" in sys.argv else False
-SEND_WEBHOOK = False if "--no-webhook" in sys.argv else False if "-nwh" in sys.argv else True
+def main():
+    UPLOAD_TO_CDN = True if "--cdn" in sys.argv else False
+    SEND_WEBHOOK = False if "--no-webhook" in sys.argv else False if "-nwh" in sys.argv else True
 
-# reddit infos
-subreddit_name = "kpop"
-wiki_page_name = "upcoming-releases/archive"
+    # reddit infos
+    subreddit_name = "kpop"
+    wiki_page_name = "upcoming-releases/archive"
 
-# reddit instance
-dotenv.load_dotenv()
+    # reddit instance
+    dotenv.load_dotenv()
 
-reddit = praw.Reddit(
-        client_id=os.getenv('REDDIT_CLIENT_ID'),
-        client_secret=os.getenv('REDDIT_CLIENT_SECRET'),
-        user_agent=os.getenv('REDDIT_USER_AGENT')
-    )
+    reddit = praw.Reddit(
+            client_id=os.getenv('REDDIT_CLIENT_ID'),
+            client_secret=os.getenv('REDDIT_CLIENT_SECRET'),
+            user_agent=os.getenv('REDDIT_USER_AGENT')
+        )
 
-# fetch subreddit
-print("Fetching Months...")
+    # fetch subreddit
+    print("Fetching Months...")
 
-try:
-        subreddit = reddit.subreddit(subreddit_name)
-except praw.exceptions.PRAWException as e:
-        print(f"Error fetching subreddit: {e}")
+    try:
+            subreddit = reddit.subreddit(subreddit_name)
+    except praw.exceptions.PRAWException as e:
+            print(f"Error fetching subreddit: {e}")
 
-# fetch wiki page
-content = fetch_main_reddit_wiki_page(subreddit_name, wiki_page_name)
+    # fetch wiki page
+    content = fetch_main_reddit_wiki_page(subreddit_name, wiki_page_name)
 
-print("Done!")
+    print("Done!")
 
-if content:
+    if content:
 
-    json_data = []
+        json_data = []
 
-    for wiki_link in content[::-1]:
+        for wiki_link in content[::-1]:
 
-        progress = int(content[::-1].index(wiki_link)+1/len(content)*100)
+            progress = int(content[::-1].index(wiki_link)+1/len(content)*100)
 
-        if progress < 10:
-            progress = "  " + str(progress)
-        elif progress < 100:
-            progress = " " + str(progress)
+            if progress < 10:
+                progress = "  " + str(progress)
+            elif progress < 100:
+                progress = " " + str(progress)
 
-        #print("   ==>", end="\n")
-        print(f"[{progress}%] Fetching monthly page: " + wiki_link, end="\r")
+            #print("   ==>", end="\n")
+            print(f"[{progress}%] Fetching monthly page: " + wiki_link, end="\r")
 
-        # sleep for 2 seconds to avoid getting rate limited
-        # reddit api is awful
-        time.sleep(2)
+            # sleep for 2 seconds to avoid getting rate limited
+            # reddit api is awful
+            time.sleep(2)
 
-        try:
-            # fetch the monthly page and parse it
-            json_data += fetch_monthly_page(wiki_link, subreddit_name)
-        except Exception as e:
-            # write json_data to file
-            with open(f"{subreddit_name}_upcoming_releases-CANCELED.json", "w") as f:
-                f.write(json.dumps(json_data, indent=4))
-            print("Error fetching monthly page: " + wiki_link)
-            print(e)
-            exit(1)
+            try:
+                # fetch the monthly page and parse it
+                json_data += fetch_monthly_page(wiki_link, subreddit_name)
+            except Exception as e:
+                # write json_data to file
+                with open(f"{subreddit_name}_upcoming_releases-CANCELED.json", "w") as f:
+                    f.write(json.dumps(json_data, indent=4))
+                print("Error fetching monthly page: " + wiki_link)
+                print(e)
+                exit(1)
 
-        #print(f"[{progress}%] Parsed monthly page: " + wiki_link + "  ", end="\r")
+            #print(f"[{progress}%] Parsed monthly page: " + wiki_link + "  ", end="\r")
 
-    # add a first element to the list that holds the date of the last update
-    json_data.insert(0, {"last_update": time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime()) + " UTC"})
-
-
-    # save json_data to file
-    with open(f"rkpop_data.json", "w") as f:
-        f.write(json.dumps(json_data, indent=4))
-
-    print("Fetched", len(json_data) - 1, "entries.")
-
-    cdn_upload_cmd = "rclone copy rkpop_data.json cdn:cdn/api/kcomebacks/"
-
-    if UPLOAD_TO_CDN:
-        print("Uploading...")
-        os.system(cdn_upload_cmd)
-    elif input("Upload to cdn? [Y/n]") in ["Y", "y", ""]:
-        print("Uploading...")
-        os.system(cdn_upload_cmd)
+        # add a first element to the list that holds the date of the last update
+        json_data.insert(0, {"last_update": time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime()) + " UTC"})
 
 
-if SEND_WEBHOOK:
-    rpop_webhook.send_webhook()
+        # save json_data to file
+        with open(f"rkpop_data.json", "w") as f:
+            f.write(json.dumps(json_data, indent=4))
+
+        print("Fetched", len(json_data) - 1, "entries.")
+
+        cdn_upload_cmd = "rclone copy rkpop_data.json cdn:cdn/api/kcomebacks/"
+
+        if UPLOAD_TO_CDN:
+            print("Uploading...")
+            os.system(cdn_upload_cmd)
+        elif input("Upload to cdn? [Y/n]") in ["Y", "y", ""]:
+            print("Uploading...")
+            os.system(cdn_upload_cmd)
+
+
+    if SEND_WEBHOOK:
+        rpop_webhook.send_webhook()
+
+if "__name__" == "__main__":
+    main()
